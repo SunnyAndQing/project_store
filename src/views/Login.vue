@@ -6,7 +6,7 @@
         <el-input v-model="formData.username"></el-input>
       </el-form-item>
       <el-form-item label="密码">
-        <el-input type="password" v-model="formData.password"></el-input>
+        <el-input @keyup.enter.native="handleLogin" type="password" v-model="formData.password"></el-input>
       </el-form-item>
       <el-form-item>
         <el-button class="btn-login" type="primary" @click="handleLogin">登录</el-button>
@@ -36,9 +36,11 @@ export default {
         // 如果登录成功
         this.$message.success(msg);
         // 登录成功要记录token
+        // var {data: {data: {token}}} = response;
         var {data: {data: {token}}} = response;
-        console.log(token, 'token');
         sessionStorage.setItem('token', token);
+        // 跳转home页
+        this.$router.push('/');
       } else {
         this.$message.error(msg);
       }
