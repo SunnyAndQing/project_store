@@ -7,11 +7,15 @@ import router from './router';
 import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
 import '@/assets/css/index.css';
+import moment from 'moment';
 // 配置element-ui
 Vue.use(ElementUI);
 
 Vue.config.productionTip = false;
 
+Vue.filter('formatDate', (value, ftmString) => {
+  return moment(value).format(ftmString);
+});
 /* eslint-disable no-new */
 new Vue({
   el: '#app',

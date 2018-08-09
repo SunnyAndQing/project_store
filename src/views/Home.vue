@@ -115,6 +115,8 @@ export default {
   color: #fff;
 }
 .header .logout a {
+  position: absolute;
+  right: 10px;
   text-decoration: none;
   color: orange;
 }
