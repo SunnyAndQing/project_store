@@ -24,31 +24,47 @@
         <el-table-column
           prop="username"
           label="姓名"
-          width="180">
+          width="120">
         </el-table-column>
         <el-table-column
           prop="email"
           label="邮箱"
-          width="180">
+          width="120">
         </el-table-column>
         <el-table-column
           prop="mobile"
-          label="电话">
+          label="电话"
+          width="120">
         </el-table-column>
         <el-table-column
           prop="create_time"
-          label="创建时间">
+          label="创建时间"
+          width="180">
           <template slot-scope="scope">
             {{ scope.row.create_time | formatDate('YYYY-MM-DD') }}
           </template>
         </el-table-column>
         <el-table-column
           prop="mg_state"
-          label="状态">
+          label="状态"
+          width="180">
+          <template slot-scope="scope">
+            <el-switch
+              v-model="scope.row.mg_state"
+              active-color="#13ce66"
+              inactive-color="#ff4949">
+            </el-switch>
+          </template>
         </el-table-column>
         <el-table-column
           prop="handle"
-          label="操作">
+          label="操作"
+          width="280">
+          <template slot-scope="scope">
+           <el-button type="primary" icon="el-icon-edit" size="mini" plain></el-button>
+           <el-button type="danger" icon="el-icon-message" size="mini" plain></el-button>
+           <el-button type="success" icon="el-icon-check" size="mini" plain></el-button>
+          </template>
         </el-table-column>
       </el-table>
     </el-card>
