@@ -10,7 +10,10 @@
         <el-input v-model="inputKey" placeholder="请输入内容" class="searchtext">
         <el-button icon="el-icon-search" slot="append"></el-button>
         </el-input>
-        <el-button type="success" plain>添加用户</el-button>
+        <el-button type="success"
+          plain
+          @click="addDialogTableVisible = true">
+          添加用户</el-button>
       </el-col>
     </el-row>
     <el-card class="card">
@@ -78,6 +81,31 @@
         :total="total">
       </el-pagination>
     </el-card>
+    <!-- 添加对话框 -->
+    <!-- 通过给表单设置ref属性,就可以操作DOM对象 -->
+    <el-dialog title="添加用户" :visible.sync="addDialogTableVisible">
+      <!-- :rules="rules" -->
+      <el-form
+        :model="form"
+        ref="form">
+        <el-form-item label="用户名" label-width="80px" prop="username">
+          <el-input v-model="form.username" auto-complete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="密码" label-width="80px" prop="password">
+          <el-input v-model="form.password" auto-complete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="邮箱" label-width="80px">
+          <el-input v-model="form.email" auto-complete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="电话" label-width="80px">
+          <el-input v-model="form.mobile" auto-complete="off"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="handleCancel">取 消</el-button>
+        <el-button type="primary" @click="handleAddUser">确 定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -90,13 +118,33 @@ export default {
       userData: [],
       pageSize: 2,
       pageNumber: 1,
-      total: 0
+      total: 0,
+      // 添加用户对话框是否显示属性
+      addDialogTableVisible: false,
+      form: {
+        username: '',
+        password: '',
+        email: '',
+        mobile: ''
+      },
+      // 表单校验规则
+      rules: {
+        username: [
+          { required: true, message: '请输入用户名', trigger: 'blur' },
+          { min: 3, max: 5, message: '长度在 3 到 5 个字符', trigger: 'blur' }
+        ],
+        password: [
+          { required: true, message: '请输入密码', trigger: 'blur' },
+          { min: 3, max: 11, message: '长度在 3 到 11 个字符', trigger: 'blur' }
+        ]
+      }
     };
   },
   created () {
     this.loadData();
   },
   methods: {
+    // 加载表格数据
     async loadData () {
       // 获取token
       var token = sessionStorage.getItem('token');
@@ -113,15 +161,45 @@ export default {
         this.$message.error(msg);
       }
     },
+    // 点击每页显示几条数据按钮触发事件
     handleSizeChange (val) {
-      console.log(`每页 ${val} 条`);
+      // console.log(`每页 ${val} 条`);
       this.pageSize = val;
       this.loadData();
     },
+    // 点击页码触发事件
     handleCurrentChange (val) {
-      console.log(`当前页: ${val}`);
+      // console.log(`当前页: ${val}`);
       this.pageNumber = val;
       this.loadData();
+    },
+    // 点击确认添加按钮触发事件
+    async handleAddUser () {
+      this.$refs.form.validate(async (valid) => {
+        if (valid) {
+          this.addDialogTableVisible = false;
+          // 发送post请求，像数据库提交数据
+          var response = await this.$http.post('/users', this.form);
+          console.log(response, '添加用户');
+          const {meta: {msg, status}} = response.data;
+          if (status === 201) {
+            this.$message.success('添加用户成功!');
+            this.loadData();
+          } else {
+            this.$message.error(msg);
+          }
+          // this.$refs.form.resetFields();
+          // for (var key in this.form) {
+          //   this.form[key] = '';
+          // }
+        } else {
+          this.$message.error('表单校验失败!');
+        }
+      });
+    },
+    handleCancel () {
+      this.addDialogTableVisible = false;
+      this.$refs.form.resetFields();
     }
   }
 };
