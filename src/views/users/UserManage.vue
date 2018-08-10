@@ -7,8 +7,8 @@
     </el-breadcrumb>
     <el-row class="searchrow">
       <el-col :span="24">
-        <el-input v-model="inputKey" placeholder="请输入内容" class="searchtext">
-        <el-button icon="el-icon-search" slot="append"></el-button>
+        <el-input v-model="inputKey" placeholder="请输入内容" class="searchtext" clearable>
+        <el-button @click="searchUser" icon="el-icon-search" slot="append"></el-button>
         </el-input>
         <el-button type="success"
           plain
@@ -64,9 +64,14 @@
           label="操作"
           width="280">
           <template slot-scope="scope">
-           <el-button type="primary" icon="el-icon-edit" size="mini" plain></el-button>
-           <el-button type="danger" icon="el-icon-message" size="mini" plain></el-button>
-           <el-button type="success" icon="el-icon-check" size="mini" plain></el-button>
+            <el-button
+              type="primary"
+              icon="el-icon-edit"
+              size="mini"
+              plain
+              @click="handleEdit(scope.row)"></el-button>
+            <el-button type="danger" icon="el-icon-delete" size="mini" plain></el-button>
+            <el-button type="success" icon="el-icon-check" size="mini" plain></el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -83,7 +88,10 @@
     </el-card>
     <!-- 添加对话框 -->
     <!-- 通过给表单设置ref属性,就可以操作DOM对象 -->
-    <el-dialog title="添加用户" :visible.sync="addDialogTableVisible">
+    <el-dialog
+      title="添加用户"
+      :visible.sync="addDialogTableVisible"
+      @close="handleDialogClose">
       <!-- :rules="rules" -->
       <el-form
         :model="form"
@@ -106,6 +114,34 @@
         <el-button type="primary" @click="handleAddUser">确 定</el-button>
       </div>
     </el-dialog>
+    <!-- 编辑对话框 -->
+    <el-dialog
+      title="修改用户"
+      :visible.sync="editDialogTableVisible"
+      @close="handleDialogClose">
+      <!-- :rules="rules" -->
+      <el-form
+        :model="form"
+        :rules="rules"
+        ref="form">
+        <el-form-item label="用户名" label-width="80px" prop="username">
+          <el-input v-model="form.username" auto-complete="off" disabled></el-input>
+        </el-form-item>
+        <!-- <el-form-item label="密码" label-width="80px" prop="password">
+          <el-input v-model="form.password" auto-complete="off"></el-input>
+        </el-form-item> -->
+        <el-form-item label="邮箱" label-width="80px">
+          <el-input v-model="form.email" auto-complete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="电话" label-width="80px">
+          <el-input v-model="form.mobile" auto-complete="off"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="handleCancel">取 消</el-button>
+        <el-button type="primary" @click="confirmEditUser">确 定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -121,6 +157,8 @@ export default {
       total: 0,
       // 添加用户对话框是否显示属性
       addDialogTableVisible: false,
+      // 编辑用户对话框是否显示属性
+      editDialogTableVisible: false,
       form: {
         username: '',
         password: '',
@@ -161,6 +199,9 @@ export default {
         this.$message.error(msg);
       }
     },
+    searchUser () {
+      this.loadData();
+    },
     // 点击每页显示几条数据按钮触发事件
     handleSizeChange (val) {
       // console.log(`每页 ${val} 条`);
@@ -197,9 +238,53 @@ export default {
         }
       });
     },
+    // 点击取消按钮触发事件
     handleCancel () {
       this.addDialogTableVisible = false;
+      this.editDialogTableVisible = false;
       this.$refs.form.resetFields();
+      // 3.清空表单样式及表单数据
+      for (var key in this.form) {
+        this.form[key] = '';
+      }
+    },
+    // 点击编辑按钮触发的事件
+    handleEdit (user) {
+      console.log(user, 'user');
+      // 1.选中行用户数据，添加到表单上
+      this.form.username = user.username;
+      this.form.email = user.email;
+      this.form.mobile = user.mobile;
+      // 为发送请求时保存id
+      this.form.id = user.id;
+      // 2.将编辑对话框显示出来
+      this.editDialogTableVisible = true;
+    },
+    // 点击编辑对话框确认按钮触发的事件
+    async confirmEditUser () {
+      // 1.校验表单
+      // 2.发送put请求，提交修改数据
+      const response = await this.$http.put(`users/${this.form.id}`, {email: this.form.email, mobile: this.form.mobile});
+      console.log(response, '修改');
+      var {meta: {msg, status}} = response.data;
+      if (status === 200) {
+        this.editDialogTableVisible = false;
+        this.$message.success('修改成功！');
+        this.loadData();
+      } else {
+        this.$message.error(msg);
+      }
+      // 3.清空表单样式及表单数据
+      for (var key in this.form) {
+        this.form[key] = '';
+      }
+    },
+    // 点击编辑对话框close按钮触发的事件
+    handleDialogClose () {
+      // 清空表单上的数据
+      for (var key in this.form) {
+        this.form[key] = '';
+      }
     }
   }
 };
