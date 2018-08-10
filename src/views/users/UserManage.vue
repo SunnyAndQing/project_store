@@ -7,7 +7,7 @@
     </el-breadcrumb>
     <el-row class="searchrow">
       <el-col :span="24">
-        <el-input v-model="input" placeholder="请输入内容" class="searchtext">
+        <el-input v-model="inputKey" placeholder="请输入内容" class="searchtext">
         <el-button icon="el-icon-search" slot="append"></el-button>
         </el-input>
         <el-button type="success" plain>添加用户</el-button>
@@ -67,6 +67,16 @@
           </template>
         </el-table-column>
       </el-table>
+      <!-- 分页 -->
+      <el-pagination
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="pageNumber"
+        :page-sizes="[2, 4, 6, 8]"
+        :page-size="pageSize"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total">
+      </el-pagination>
     </el-card>
   </div>
 </template>
@@ -76,8 +86,11 @@
 export default {
   data () {
     return {
-      input: '',
-      userData: []
+      inputKey: '',
+      userData: [],
+      pageSize: 2,
+      pageNumber: 1,
+      total: 0
     };
   },
   created () {
@@ -90,14 +103,25 @@ export default {
       // 将token设置到请求头的参数内
       this.$http.defaults.headers.common['Authorization'] = token;
       // 发送axios请求获取数据
-      var response = await this.$http.get('users?pagenum=1&pagesize=10');
+      var response = await this.$http.get(`users?pagenum=${this.pageNumber}&pagesize=${this.pageSize}&query=${this.inputKey}`);
       var {data: {meta: {msg, status}}} = response;
       var {data: {data}} = response;
       if (status === 200) {
+        this.total = response.data.data.total;
         this.userData = data.users;
       } else {
         this.$message.error(msg);
       }
+    },
+    handleSizeChange (val) {
+      console.log(`每页 ${val} 条`);
+      this.pageSize = val;
+      this.loadData();
+    },
+    handleCurrentChange (val) {
+      console.log(`当前页: ${val}`);
+      this.pageNumber = val;
+      this.loadData();
     }
   }
 };
@@ -107,11 +131,11 @@ export default {
 .root {
   height: 100%;
 }
-.card {
+/* .card {
   height: 100%;
-}
+} */
 .el-breadcrumb {
-     background-color: #d3dce6;
+    background-color: #d3dce6;
     height: 45px;
     font-size: 15px;
     padding-left: 10px;
