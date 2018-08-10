@@ -72,7 +72,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+// import axios from 'axios';
 export default {
   data () {
     return {
@@ -88,9 +88,9 @@ export default {
       // 获取token
       var token = sessionStorage.getItem('token');
       // 将token设置到请求头的参数内
-      axios.defaults.headers.common['Authorization'] = token;
+      this.$http.defaults.headers.common['Authorization'] = token;
       // 发送axios请求获取数据
-      var response = await axios.get('http://localhost:8888/api/private/v1/users?pagenum=1&pagesize=10');
+      var response = await this.$http.get('users?pagenum=1&pagesize=10');
       var {data: {meta: {msg, status}}} = response;
       var {data: {data}} = response;
       if (status === 200) {

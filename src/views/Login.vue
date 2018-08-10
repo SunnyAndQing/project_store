@@ -16,7 +16,7 @@
 </template>
 <script>
 // 导入axios
-import axios from 'axios';
+// import axios from 'axios';
 export default {
   data () {
     return {
@@ -29,7 +29,7 @@ export default {
   methods: {
     async handleLogin () {
       // console.log(this.formData);
-      var response = await axios.post('http://localhost:8888/api/private/v1/login', this.formData);
+      var response = await this.$http.post('login', this.formData);
       console.log(response);
       var {data: {meta: {msg, status}}} = response;
       if (status === 200) {
