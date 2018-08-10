@@ -55,7 +55,8 @@
             <el-switch
               v-model="scope.row.mg_state"
               active-color="#13ce66"
-              inactive-color="#ff4949">
+              inactive-color="#ff4949"
+              @change="handleUserStatus(scope.row)">
             </el-switch>
           </template>
         </el-table-column>
@@ -70,7 +71,12 @@
               size="mini"
               plain
               @click="handleEdit(scope.row)"></el-button>
-            <el-button type="danger" icon="el-icon-delete" size="mini" plain></el-button>
+            <el-button
+              type="danger"
+              icon="el-icon-delete"
+              size="mini"
+              plain
+              @click="handleDeleteUser(scope.row.id)"></el-button>
             <el-button type="success" icon="el-icon-check" size="mini" plain></el-button>
           </template>
         </el-table-column>
@@ -285,6 +291,39 @@ export default {
       for (var key in this.form) {
         this.form[key] = '';
       }
+    },
+    // 点击删除按钮触发的事件
+    async handleDeleteUser (id) {
+      this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(async () => {
+        const response = await this.$http.delete(`users/${id}`);
+        const {meta: {msg, status}} = response.data;
+        if (status === 200) {
+          // this.$message.success('删除成功！');
+          this.$message({
+            type: 'success',
+            message: '删除成功!'
+          });
+          this.loadData();
+        } else {
+          this.$message.error(msg);
+        }
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        });
+      });
+    },
+    // 点击用户状态按钮触发的事件
+    async handleUserStatus (user) {
+      var response = await this.$http.put(`users/${user.id}/state/${user.mg_state}`);
+      // console.log(response, 'status');
+      const {meta: {msg, status}} = response.data;
+      status === 200 ? this.$message.success(msg) : this.$message.error(msg);
     }
   }
 };
