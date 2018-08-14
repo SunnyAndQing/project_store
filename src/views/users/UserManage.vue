@@ -77,7 +77,12 @@
               size="mini"
               plain
               @click="handleDeleteUser(scope.row.id)"></el-button>
-            <el-button type="success" icon="el-icon-check" size="mini" plain></el-button>
+            <el-button
+              type="success"
+              icon="el-icon-check"
+              size="mini"
+              plain
+              @click="handleSetRolesOptionDialog(scope.row)"></el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -148,6 +153,35 @@
         <el-button type="primary" @click="confirmEditUser">确 定</el-button>
       </div>
     </el-dialog>
+    <!-- 分配角色对话框 -->
+    <el-dialog
+      title="分配角色"
+      :visible.sync="rolesDialogVisible"
+      width="50%">
+      <!-- :before-close="handleClose" -->
+      <!-- <span>这是一段信息</span> -->
+      <el-form  label-width="100px">
+        <el-form-item label="当前用户">
+          <!-- <el-input v-model="formLabelAlign.name"></el-input> -->
+          {{ currentName }}
+        </el-form-item>
+        <el-form-item label="请选择角色">
+          <el-select v-model="currentRoleId">
+            <el-option label="请选择角色" :value="-1" disabled></el-option>
+            <el-option
+              v-for="item in rolesData"
+              :key="item.id"
+              :label="item.roleName"
+              :value="item.id">
+            </el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="rolesDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="confirmSetRole">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -165,6 +199,8 @@ export default {
       addDialogTableVisible: false,
       // 编辑用户对话框是否显示属性
       editDialogTableVisible: false,
+      // 分配角色对话框是否显示属性
+      rolesDialogVisible: false,
       form: {
         username: '',
         password: '',
@@ -181,7 +217,12 @@ export default {
           { required: true, message: '请输入密码', trigger: 'blur' },
           { min: 3, max: 11, message: '长度在 3 到 11 个字符', trigger: 'blur' }
         ]
-      }
+      },
+      // 角色数据
+      rolesData: [],
+      currentName: '',
+      currentUserId: -1,
+      currentRoleId: -1
     };
   },
   created () {
@@ -324,6 +365,45 @@ export default {
       // console.log(response, 'status');
       const {meta: {msg, status}} = response.data;
       status === 200 ? this.$message.success(msg) : this.$message.error(msg);
+    },
+    // 点击设置用户角色按钮触发的事件
+    async handleSetRolesOptionDialog (user) {
+      this.rolesDialogVisible = true;
+      // 因为确认用户角色接口需要用户id和角色id,所以需要存储一下
+      this.currentName = user.username;
+      this.currentUserId = user.id;
+      // console.log(user, 'user');
+
+      // 发送请求，获取角色列表
+      var response = await this.$http.get('roles');
+      // console.log(response, 'roles');
+      const {data: {data, meta: {msg, status}}} = response;
+      console.log(data, '角色');
+      if (status === 200) {
+        console.log(msg);
+        this.rolesData = data;
+        this.currentRoleId = data.id;
+      }
+
+      // 获取角色id
+      var userInfo = await this.$http.get(`users/${this.currentUserId}`);
+      console.log(userInfo, '用户信息');
+      const {data: {rid}} = userInfo.data;
+      this.currentRoleId = rid;
+    },
+    // 点击确认设置角色按钮触发的事件
+    async confirmSetRole () {
+      var response = await this.$http.put(`users/${this.currentUserId}/role`, {
+        rid: this.currentRoleId
+      });
+      // console.log(response, '确认');
+      const {meta: {msg, status}} = response.data;
+      if (status === 200) {
+        this.$message.success(msg);
+      } else {
+        this.$message.error(msg);
+      }
+      this.rolesDialogVisible = false;
     }
   }
 };
