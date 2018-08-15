@@ -231,10 +231,10 @@ export default {
   methods: {
     // 加载表格数据
     async loadData () {
-      // 获取token
-      var token = sessionStorage.getItem('token');
-      // 将token设置到请求头的参数内
-      this.$http.defaults.headers.common['Authorization'] = token;
+      // // 获取token
+      // var token = sessionStorage.getItem('token');
+      // // 将token设置到请求头的参数内
+      // this.$http.defaults.headers.common['Authorization'] = token;
       // 发送axios请求获取数据
       var response = await this.$http.get(`users?pagenum=${this.pageNumber}&pagesize=${this.pageSize}&query=${this.inputKey}`);
       var {data: {meta: {msg, status}}} = response;
